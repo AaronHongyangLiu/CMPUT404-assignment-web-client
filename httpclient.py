@@ -89,7 +89,7 @@ class HTTPClient(object):
         code = self.get_code(data)
         body = self.get_body(data)
 
-        #print(data)
+        print(data)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -102,21 +102,20 @@ class HTTPClient(object):
         # form the request
         request = "POST %s HTTP/1.1\r\n" % path
         request += "Host: %s\r\n" % Host
+        requestBody = ""
         if args:
             requestBody = self.encode(args)
-            request += "Content-Length: %d\r\n" % len(requestBody)
-            request += "Content-Type: application/x-www-form-urlencoded\r\n"
-            request += "\r\n"
-            request += requestBody+"\r\n"
-        else:
-            request += "\r\n"
+        request += "Content-Length: %d\r\n" % len(requestBody)
+        request += "Content-Type: application/x-www-form-urlencoded\r\n"
+        request += "\r\n"
+        request += requestBody + "\r\n"
         # send out the request
         con.sendall(request)
         data = self.recvall(con)
         code = self.get_code(data)
         body = self.get_body(data)
 
-       # print(data)
+        print(data)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):

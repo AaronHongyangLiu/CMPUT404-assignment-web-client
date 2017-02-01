@@ -18,3 +18,8 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+The followings are useful resources I used when I wrote this assignment.
+This python doc page helped me to figuer out the "Key error: 'content-length'"
+    https://docs.python.org/2/library/basehttpserver.html
+The Lecture notes by Abram Hindle was used as the reference to HTTP headers
+    https://eclass.srv.ualberta.ca/pluginfile.php/3259365/mod_resource/content/2/04-HTTP.pdf
