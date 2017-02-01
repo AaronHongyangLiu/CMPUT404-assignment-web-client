@@ -32,21 +32,33 @@ class HTTPResponse(object):
         self.code = code
         self.body = body
 
+    # def __str__(self):
+    #     return str(self.code)+"\r\n"+str(self.body)
+
 class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
-        # use sockets!
-        return None
+        clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        clientSocket.connect((host,port))
+        return clientSocket
 
     def get_code(self, data):
-        return None
+        firstLine = (data.split("\r\n"))[0]
+        code = int((firstLine.split(" "))[1])
+        return code
 
     def get_headers(self,data):
-        return None
+        data = data.split("\r\n\r\n")
+        data = data[0].split["\r\n"]
+        headers = "\r\n".join(data[1:])
+        return headers
 
     def get_body(self, data):
-        return None
+        data = data.split("\r\n\r\n")
+        body = data[1]
+        return body
+
 
     # read everything from the socket
     def recvall(self, sock):
@@ -61,13 +73,50 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        host,port,path = self.parseURL(url)
+        if port == 80:
+            Host = host
+        else:
+            Host = host+":"+str(port)
+        con = self.connect(host,port)
+        # form the request
+        request = "GET %s HTTP/1.1\r\n" % path
+        request += "Host: %s\r\n" % Host
+        request += "\r\n"
+        # send out the request
+        con.sendall(request)
+        data = self.recvall(con)
+        code = self.get_code(data)
+        body = self.get_body(data)
+
+        #print(data)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        host, port, path = self.parseURL(url)
+        if port == 80:
+            Host = host
+        else:
+            Host = host+":"+str(port)
+        con = self.connect(host, port)
+        # form the request
+        request = "POST %s HTTP/1.1\r\n" % path
+        request += "Host: %s\r\n" % Host
+        if args:
+            requestBody = self.encode(args)
+            request += "Content-Length: %d\r\n" % len(requestBody)
+            request += "Content-Type: application/x-www-form-urlencoded\r\n"
+            request += "\r\n"
+            request += requestBody+"\r\n"
+        else:
+            request += "\r\n"
+        # send out the request
+        con.sendall(request)
+        data = self.recvall(con)
+        code = self.get_code(data)
+        body = self.get_body(data)
+
+       # print(data)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -75,6 +124,35 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
+
+    def parseURL(self,url):
+        start = url.index("http://")
+        mainPart = url[start+7:]
+        try:
+            slashIndex = mainPart.index("/")
+            path = mainPart[slashIndex:]
+            mainPart = mainPart[:slashIndex]
+            try:
+                colon = mainPart.index(":")
+                host = mainPart[:colon]
+                port = int(mainPart[colon + 1:])
+            except ValueError:
+                host = mainPart
+                port = 80
+
+        except ValueError:
+            path = "/"
+            try:
+                colon = mainPart.index(":")
+                host = mainPart[:colon]
+                port = int(mainPart[colon+1:])
+            except ValueError:
+                host = mainPart
+                port = 80
+        return host,port,path
+
+    def encode(self,args):
+        return urllib.urlencode(args)
     
 if __name__ == "__main__":
     client = HTTPClient()
@@ -85,4 +163,4 @@ if __name__ == "__main__":
     elif (len(sys.argv) == 3):
         print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( sys.argv[1] )   
+        print client.command( sys.argv[1] )
